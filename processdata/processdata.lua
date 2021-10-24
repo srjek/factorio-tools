@@ -126,7 +126,7 @@ function Process.process_data(data, locales, verbose)
 
 	-- Limit it to English for now.
 	local locale = locales["en"]
-	local item_types = {"ammo", "armor", "blueprint", "blueprint-book", "capsule", "deconstruction-item", "fluid", "gun", "item", "item-with-entity-data", "mining-tool", "module", "rail-planner", "repair-tool", "tool"}
+	local item_types = {"ammo", "armor", "blueprint", "blueprint-book", "capsule", "deconstruction-item", "fluid", "gun", "item", "item-with-tags", "item-with-entity-data", "mining-tool", "module", "rail-planner", "repair-tool", "tool"}
 	local no_module_icon = data["utility-sprites"]["default"]["slot_icon_module"]["filename"]
 	local clock_icon = data["utility-sprites"]["default"]["clock"]["filename"]
 	local icon_paths = {[no_module_icon] = true, [clock_icon] = true}
