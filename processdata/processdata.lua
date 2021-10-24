@@ -208,6 +208,7 @@ function Process.process_data(data, locales, verbose)
 	}
 	-- Normalize recipes
 	local inherited_attrs = {"subgroup", "order", "icon", "icons"}
+	local default_attrs = {["order"]=""}
 	local normal_recipes = {}
 	local expensive_recipes = {}
 	for name, raw_recipe in pairs(data["recipe"]) do
@@ -271,6 +272,11 @@ function Process.process_data(data, locales, verbose)
 					if recipe[attr] == nil then
 						recipe[attr] = main_product[attr]
 					end
+				end
+			end
+			for attr, default in pairs(default_attrs) do
+				if recipe[attr] == nil then
+					recipe[attr] = default
 				end
 			end
 			--if "main_product" in recipe:
