@@ -294,6 +294,24 @@ function Process.process_data(data, locales, verbose)
 					end
 				end
 			end
+			if recipe.name == "sludge-treatment" then
+				goto continue
+			end
+			if recipe.name ~= "alien-enrichment-process-to-alien-ore" and recipe.name ~= "alien-enrichment-process-to-artifact" and recipe.name:sub(1,28) == "alien-enrichment-process-to-" then
+				goto continue
+			end
+			if recipe.name:sub(1,23) == "ore-enrichment-process-" then
+				goto continue
+			end
+			if recipe.subgroup == "super-material" and recipe.name ~= "super-material" then
+				goto continue
+			end
+			if recipe.category == "recycling" or recipe.category == "air-purifier" then
+				goto continue
+			end
+			if recipe.subgroup == "empty-barrel" or recipe.subgroup == "fill-barrel" or recipe.subgroup == "containers" then
+				goto continue
+			end
 			if type(recipe.icon) ~= type("") then
 				if recipe.icons == nil then
 					msg("recipe missing icon:", name)
@@ -354,6 +372,10 @@ function Process.process_data(data, locales, verbose)
 						goto continue
 					end
 				end
+			end
+			if entity.name == "them-transport-belt" then
+				msg("hidden ModMash entity:", name)
+				goto continue
 			end
 			if entity.icon == nil then
 				if entity.icons == nil then
