@@ -163,21 +163,19 @@ function Process.process_data(data, locales, verbose)
 				goto continue
 			end
 			item["group"] = item_subgroups[subgroup]["group"]
-			if item.icon == nil then
+			if type(item.icon) ~= type("") then
 				if item.icons == nil then
 					msg("skipped:", item)
 					goto continue
 				end
-				-- XXX: Temporary hack.
-				msg("hack icon:", name)
-				item["icon"] = item["icons"][1]["icon"]
-				if item.icon == nil then
-					print("icon still nil:", name)
-				end
-				item["icons"] = nil
-				--item["icon"] = missing_icon
+				item["icon"] = missing_icon
 			end
 			icon_paths[item["icon"]] = true
+			if item.icons ~= nil then
+				for i, x in ipairs(item.icons) do
+					icon_paths[x.icon] = true
+				end
+			end
 			if item.fuel_value ~= nil and item.fuel_category ~= nil then
 				convert(item, "fuel_value")
 				--if "fuel_category" not in item:
@@ -209,7 +207,7 @@ function Process.process_data(data, locales, verbose)
 		groups = item_groups,
 	}
 	-- Normalize recipes
-	local inherited_attrs = {"subgroup", "order", "icon"}
+	local inherited_attrs = {"subgroup", "order", "icon", "icons"}
 	local normal_recipes = {}
 	local expensive_recipes = {}
 	for name, raw_recipe in pairs(data["recipe"]) do
@@ -232,7 +230,7 @@ function Process.process_data(data, locales, verbose)
 			-- sensible thing:
 			--
 			-- If any of the icon, subgroup, or order are not provided, inherit
-			-- them from the main_product if it is defined; otherwise, inherit 
+			-- them from the main_product if it is defined; otherwise, inherit
 			-- from the (singular) result.
 			local main_product
 			if recipe.result ~= nil or recipe.results ~= nil and #recipe.results == 1 then
@@ -280,14 +278,28 @@ function Process.process_data(data, locales, verbose)
 			--	for attr in inherited_attrs:
 			for i, attr in ipairs(inherited_attrs) do
 				if recipe[attr] == nil then
-					msg("recipe skip:", name, "because of", attr)
-					goto continue
+					if attr == "icon" and recipe["icons"] ~= nil then
+						-- This is Ok
+					elseif attr == "icons" and recipe["icon"] ~= nil then
+						-- This is Ok
+					else
+						msg("recipe skip:", name, "because of", attr)
+						goto continue
+					end
 				end
 			end
-			if recipe.subgroup == "empty-barrel" or recipe.subgroup == "fill-barrel" then
-				goto continue
+			if type(recipe.icon) ~= type("") then
+				if recipe.icons == nil then
+					msg("recipe missing icon:", name)
+				end
+				recipe.icon = missing_icon
 			end
 			icon_paths[recipe.icon] = true
+			if recipe.icons ~= nil then
+				for i, x in ipairs(recipe.icons) do
+					icon_paths[x.icon] = true
+				end
+			end
 			normalize_recipe(recipe)
 			assign_localized_name(locale, raw_recipe, recipe, recipe.results[1])
 			r.recipes[name] = recipe
@@ -338,10 +350,17 @@ function Process.process_data(data, locales, verbose)
 				end
 			end
 			if entity.icon == nil then
-				msg("entity missing icon:", name)
+				if entity.icons == nil then
+					msg("entity missing icon:", name)
+				end
 				entity["icon"] = missing_icon
 			end
 			icon_paths[entity["icon"]] = true
+			if entity.icons ~= nil then
+				for i, x in ipairs(entity.icons) do
+					icon_paths[x.icon] = true
+				end
+			end
 			local new_entity = {name = entity.name, icon = entity.icon}
 			assign_localized_name(locale, entity, new_entity)
 			local has_modules = false
@@ -418,6 +437,20 @@ function Process.process_data(data, locales, verbose)
 				d["icon_col"] = i.col
 				d["icon_row"] = i.row
 				d.icon = nil
+			end
+			if d.icons ~= nil then
+				for i, x in pairs(d.icons) do
+					if x.icon ~= nil then
+						local i = icon_map[x.icon]
+						if i == nil then
+							error(x.icon .. " not in icon_map!")
+						else
+							x["icon_col"] = i.col
+							x["icon_row"] = i.row
+							x.icon = nil
+						end
+					end
+				end
 			end
 		end
 	end
